@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"container/list"
 	"io"
 	"log"
 	"os"
@@ -84,9 +83,6 @@ func initialize() bool {
 	}
 
 	openFile()
-
-	logQueue = list.New()
-	logQueue.Init()
 
 	return true
 }
