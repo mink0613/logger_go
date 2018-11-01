@@ -7,13 +7,10 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 )
 
 var fileName string
-var logQueue *list.List
-var mux sync.Mutex
 var initialized bool
 var printConsole bool
 var fpLog *os.File
@@ -43,14 +40,19 @@ func Log(v ...string) {
 		initialized = initialize()
 	}
 
+	functionName := getCallingFunctionName()
+
+	logStr := functionName + "() --> " + strings.Join(v[:], ", ")
+	log.Println(logStr)
+}
+
+func getCallingFunctionName() string {
+
 	fpcs := make([]uintptr, 1)
-	runtime.Callers(2, fpcs)
+	runtime.Callers(3, fpcs)
 
 	// get the info of the actual function that's in the pointer
-	fun := runtime.FuncForPC(fpcs[0] - 1)
-
-	log := fun.Name() + "() --> " + strings.Join(v[:], ", ")
-	logQueue.PushBack(log)
+	return runtime.FuncForPC(fpcs[0] - 1).Name()
 }
 
 func openFile() {
@@ -86,37 +88,5 @@ func initialize() bool {
 	logQueue = list.New()
 	logQueue.Init()
 
-	go pollingData()
-
 	return true
-}
-
-func writeLog() {
-
-	if logQueue.Len() > 0 {
-		if isOpen == false {
-			openFile()
-		}
-
-		logStr := logQueue.Front()
-		log.Println(logStr.Value)
-		logQueue.Remove(logStr)
-	} else {
-		if isOpen == true {
-			isOpen = false
-			closeFile()
-		}
-	}
-}
-
-func pollingData() {
-
-	for {
-		if initialized == true {
-			mux.Lock()
-			go writeLog()
-			mux.Unlock()
-		}
-		<-time.After(10 * time.Millisecond)
-	}
 }
