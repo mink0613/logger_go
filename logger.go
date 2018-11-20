@@ -21,12 +21,14 @@ var isOpen bool
 // SetFileName will set the log file name
 // and re initialize the logger
 func SetFileName(newFileName string) {
+
 	fileName = newFileName
 	initialized = false // in order to stop pollingData()
 	initialized = initialize()
 }
 
 func getNow() string {
+
 	return time.Now().Local().Format("2006-01-02")
 }
 
