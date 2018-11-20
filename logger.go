@@ -6,10 +6,12 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
 var fileName string
+var mux sync.Mutex
 var initialized bool
 var printConsole bool
 var fpLog *os.File
@@ -45,10 +47,27 @@ func Log(v ...string) {
 	log.Println(logStr)
 }
 
+// Debug will log parameters with Debug string in the beginning
+func Debug(v ...string) {
+
+	v = append([]string{"***Debug***"}, v...)
+	Log(v...)
+}
+
+// Error will log parameters with Debug string in the beginning
+func Error(v ...string) {
+
+	v = append([]string{"***Error ***"}, v...)
+	Log(v...)
+}
+
 func getCallingFunctionName() string {
 
 	fpcs := make([]uintptr, 1)
-	runtime.Callers(3, fpcs)
+	// This is the value to skip the number of calling function names.
+	// Change this value as you wish.
+	skip := 3
+	runtime.Callers(skip, fpcs)
 
 	// get the info of the actual function that's in the pointer
 	return runtime.FuncForPC(fpcs[0] - 1).Name()
